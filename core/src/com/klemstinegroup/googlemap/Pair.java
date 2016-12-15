@@ -1,19 +1,36 @@
 package com.klemstinegroup.googlemap;
 
+import com.badlogic.gdx.assets.AssetDescriptor;
+import com.badlogic.gdx.assets.AssetErrorListener;
+import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.assets.loaders.PixmapLoader;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 
-public class Pair{
+public class Pair implements AssetErrorListener {
 	int i,j,ii,jj;
 	Texture blank;
+	AssetManager managerSat;
+	AssetManager managerRoad;
 
-	public Pair(int i,int j,int ii,int jj) {
+
+	public Pair(int i,int j,int ii,int jj,String road,String sat) {
 		this.i=i;
 		this.j=j;
 		this.ii=ii;
 		this.jj=jj;
 		blank=getBlank();
+		managerSat = new AssetManager();
+		managerSat.setLoader(Pixmap.class, new PixmapLoader(new URLHandle()));
+		managerSat.setErrorListener(this);
+		managerSat.load(sat, Pixmap.class);
+
+		managerRoad = new AssetManager();
+		managerRoad.setLoader(Pixmap.class, new PixmapLoader(new URLHandle()));
+		managerRoad.setErrorListener(this);
+		managerRoad.load(road, Pixmap.class);
+
 	}
 
 	@Override public boolean equals(Object b) {
@@ -37,5 +54,15 @@ public class Pair{
 		return new Texture(pm);
 //        }
 //        return blank;
+	}
+
+	@Override
+	public void error(AssetDescriptor asset, Throwable throwable) {
+		System.out.println("error:"+asset.fileName+"\t"+throwable.getMessage());
+	}
+
+	public boolean update() {
+		return managerRoad.update()&&managerSat.update();
+
 	}
 }

@@ -14,14 +14,11 @@ import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.assets.AssetDescriptor;
 import com.badlogic.gdx.assets.AssetErrorListener;
 import com.badlogic.gdx.assets.AssetManager;
-import com.badlogic.gdx.assets.loaders.PixmapLoader;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
 public class GoogleMap implements ApplicationListener, AssetErrorListener,
         InputProcessor {
@@ -35,11 +32,11 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
     private OrthographicCamera cam;
 
     ArrayList<MapKeeper> tiles = new ArrayList<MapKeeper>();
-    ArrayList<Pair> loading = new ArrayList<Pair>();
 
     ArrayList<Long> loaded = new ArrayList<Long>();
 
-    private AssetManager manager;
+    private ArrayList<Pair> pairs = new ArrayList<Pair>();
+    private ArrayList<Pair> remove = new ArrayList<Pair>();
 
     private float rotationSpeed;
     private GoogleMaps gm = new GoogleMaps();
@@ -53,23 +50,12 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
 
         getLocation();
 
-        manager = new AssetManager();
-        manager.setLoader(Pixmap.class, new PixmapLoader(new URLHandle()));
-        manager.setErrorListener(this);
         WIDTH = Gdx.graphics.getWidth();
         HEIGHT = Gdx.graphics.getHeight();
         rotationSpeed = 0.5f;
         face = new Texture(
                 new URLHandle(
                         "http://cdn1.sbnation.com/profile_images/592671/smiley_face_small.jpg"));
-        // MapKeeper mk = new MapKeeper();
-        // mk.tex = gm.getTexture(false);
-        // mk.texRd = gm.getTexture(true);
-        // mk.x = -GoogleMaps.WIDTH / 2;
-        // mk.y = -GoogleMaps.HEIGHT / 2;
-        // tiles.add(mk);
-        // loaded.add(0l);
-
         cam = new OrthographicCamera(WIDTH, HEIGHT);
         cam.position.set(0, 0, 0);
         moveCamera(0, 0);
@@ -121,21 +107,26 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
 
     @Override
     public void render() {
-        if (manager.update()) {
-            for (Pair p : loading) {
+        for (Pair p : pairs) {
+            if (p.update()) {
                 MapKeeper mk = new MapKeeper();
                 mk.x = p.i - GoogleMaps.WIDTH / 2;
                 mk.y = p.j - GoogleMaps.HEIGHT / 2;
-                mk.tex = getTexture(p.i, p.j, gm.getRoadMapUrl(p.i, p.j));
-                mk.texRd = getTexture(p.i, p.j, gm.getSatelliteUrl(p.i, p.j));
+                mk.tex = getTexture(p.i, p.j, gm.getRoadMapUrl(p.i, p.j), p.managerRoad);
+                mk.texRd = getTexture(p.i, p.j, gm.getSatelliteUrl(p.i, p.j), p.managerSat);
 
                 if (mk.tex != null && mk.texRd != null) {
                     tiles.add(mk);
                     loaded.add(p.ii * 10000000l + p.jj);
                 }
+                remove.add(p);
             }
-            loading.clear();
         }
+        while (remove.size() > 0) {
+            pairs.remove(remove.remove(remove.size() - 1));
+        }
+
+
         handleInput();
         GL20 gl = Gdx.graphics.getGL20();
         gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
@@ -145,7 +136,7 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
         batch.begin();
         batch.setColor(1f, 1f, 1f, 1f);
 
-        for (Pair p : loading) {
+        for (Pair p : pairs) {
             batch.draw(p.blank, p.i - GoogleMaps.WIDTH / 2, p.j - GoogleMaps.HEIGHT / 2);
         }
 
@@ -196,7 +187,9 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
 
     @Override
     public void resize(int width, int height) {
-        // TODO Auto-generated method stub
+//       WIDTH=width;
+//       HEIGHT=height;
+//       cam.setToOrtho(false,width,height);
     }
 
     @Override
@@ -248,10 +241,8 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
         int j = jj * GoogleMaps.HEIGHT;
         String road = gm.getRoadMapUrl(i, j);
         String sat = gm.getSatelliteUrl(i, j);
-        if (!loading.contains(new Pair(i, j, ii, jj))) {
-            loading.add(new Pair(i, j, ii, jj));
-            manager.load(road, Pixmap.class);
-            manager.load(sat, Pixmap.class);
+        if (!pairs.contains(new Pair(i, j, ii, jj, road, sat))) {
+            pairs.add(new Pair(i, j, ii, jj, road, sat));
         }
     }
 
@@ -301,7 +292,7 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
         }
     }
 
-    public Texture getTexture(int x, int y, String bb) {
+    public Texture getTexture(int x, int y, String bb, AssetManager manager) {
         System.out.println(bb);
         try {
             Pixmap pixmap = manager.get(bb, Pixmap.class);
