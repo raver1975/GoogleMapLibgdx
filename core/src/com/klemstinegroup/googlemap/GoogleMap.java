@@ -23,8 +23,8 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 public class GoogleMap implements ApplicationListener, AssetErrorListener,
         InputProcessor {
 
-    static int WIDTH = 480;
-    static int HEIGHT = 320;
+    static float WIDTH = 480;
+    static float HEIGHT = 320;
     private static Texture blank;
     int x = 0;
     int y = 0;
@@ -188,7 +188,7 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
             if (mk.tex != null) {
                 batch.draw(mk.tex, mk.x(), mk.y());
             }
-            batch.setColor(1f, 1f, 1f, .5f);
+            batch.setColor(1f, 1f, 1f, .8f);
             if (mk.texRd != null)
                 batch.draw(mk.texRd, mk.x(), mk.y());
         }
@@ -231,8 +231,8 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
 
     @Override
     public void resize(int width, int height) {
-//       WIDTH=width;
-//       HEIGHT=height;
+       WIDTH=width;
+       HEIGHT=height;
 //       cam.setToOrtho(false,width,height);
     }
 
@@ -323,10 +323,10 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
 
     public void moveCamera(int x, int y) {
         cam.translate(x, y, 0);
-        int xl = (int) (((cam.position.x - (WIDTH / 2)) / GoogleMaps.WIDTH) - .5f);
-        int xh = (int) (((cam.position.x + (WIDTH / 2)) / GoogleMaps.WIDTH) + .5f);
-        int yl = (int) (((cam.position.y - (HEIGHT / 2)) / GoogleMaps.HEIGHT) - .5f);
-        int yh = (int) (((cam.position.y + (HEIGHT / 2)) / GoogleMaps.HEIGHT) + .5f);
+        int xl = (int) (((cam.position.x - (WIDTH / 2f)) / GoogleMaps.WIDTH) - .5f);
+        int xh = (int) (((cam.position.x + (WIDTH / 2f)) / GoogleMaps.WIDTH) + .5f);
+        int yl = (int) (((cam.position.y - (HEIGHT / 2f)) / GoogleMaps.HEIGHT) - .5f);
+        int yh = (int) (((cam.position.y + (HEIGHT / 2f)) / GoogleMaps.HEIGHT) + .5f);
         for (int i = yl; i <= yh; i++) {
             for (int j = xl; j <= xh; j++) {
                 if (!tiles.contains(new Pair(j, i))) {
