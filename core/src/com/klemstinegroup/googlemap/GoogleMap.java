@@ -31,11 +31,11 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
 
     private OrthographicCamera cam;
 
-    ArrayList<MapKeeper> tiles = new ArrayList<MapKeeper>();
+    ArrayList<Pair> tiles = new ArrayList<Pair>();
 
     ArrayList<Long> loaded = new ArrayList<Long>();
 
-    private ArrayList<Pair> pairs = new ArrayList<Pair>();
+    private ArrayList<Pair> loading = new ArrayList<Pair>();
     private ArrayList<Pair> remove = new ArrayList<Pair>();
 
     private float rotationSpeed;
@@ -107,23 +107,20 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
 
     @Override
     public void render() {
-        for (Pair p : pairs) {
+        for (Pair p : loading) {
             if (p.update()) {
-                MapKeeper mk = new MapKeeper();
-                mk.x = p.i - GoogleMaps.WIDTH / 2;
-                mk.y = p.j - GoogleMaps.HEIGHT / 2;
-                mk.tex = getTexture(p.i, p.j, gm.getRoadMapUrl(p.i, p.j), p.managerRoad);
-                mk.texRd = getTexture(p.i, p.j, gm.getSatelliteUrl(p.i, p.j), p.managerSat);
+                p.tex = getTexture(gm.getRoadMapUrl(p.i, p.j), p.managerRoad);
+                p.texRd = getTexture(gm.getSatelliteUrl(p.i, p.j), p.managerSat);
 
-                if (mk.tex != null && mk.texRd != null) {
-                    tiles.add(mk);
+                if (p.tex != null && p.texRd != null) {
+                    tiles.add(p);
                     loaded.add(p.ii * 10000000l + p.jj);
                 }
                 remove.add(p);
             }
         }
         while (remove.size() > 0) {
-            pairs.remove(remove.remove(remove.size() - 1));
+            loading.remove(remove.remove(remove.size() - 1));
         }
 
 
@@ -136,19 +133,40 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
         batch.begin();
         batch.setColor(1f, 1f, 1f, 1f);
 
-        for (Pair p : pairs) {
-            batch.draw(p.blank, p.i - GoogleMaps.WIDTH / 2, p.j - GoogleMaps.HEIGHT / 2);
+        for (Pair p : loading) {
+            batch.draw(p.blank, p.x(), p.y());
         }
 
-        for (MapKeeper mk : tiles) {
-            if (mk.tex != null)
-                batch.draw(mk.tex, mk.x, mk.y);
+        int xl = (int) (((cam.position.x - (WIDTH / 2)) / GoogleMaps.WIDTH) - .5);
+        int xh = (int) (((cam.position.x + (WIDTH / 2)) / GoogleMaps.WIDTH) + .5);
+        int yl = (int) (((cam.position.y - (HEIGHT / 2)) / GoogleMaps.HEIGHT) - .5);
+        int yh = (int) (((cam.position.y + (HEIGHT / 2)) / GoogleMaps.HEIGHT + .5));
+
+//        System.out.println(xl+"\t"+xh+"\t"+yl+"\t"+yh);
+        ArrayList<Pair> draw = new ArrayList<Pair>();
+        for (int i = yl; i <= yh; i++) {
+            for (int j = xl; j <= xh; j++) {
+                Pair test = new Pair(j * GoogleMaps.WIDTH, i * GoogleMaps.HEIGHT);
+                for (Pair p : tiles) {
+//
+                    if (p.equals(test)) {
+//                        System.out.println(p.toString() + "\t" + test.toString());
+                        draw.add(p);
+                    }
+                }
+            }
         }
-        batch.setColor(1f, 1f, 1f, .8f);
-        for (MapKeeper mk : tiles) {
+
+        for (Pair mk : draw) {
+            batch.setColor(1f, 1f, 1f, 1f);
+            if (mk.tex != null) {
+                batch.draw(mk.tex, mk.x(), mk.y());
+            }
+            batch.setColor(1f, 1f, 1f, .5f);
             if (mk.texRd != null)
-                batch.draw(mk.texRd, mk.x, mk.y);
+                batch.draw(mk.texRd, mk.x(), mk.y());
         }
+
         batch.setColor(1f, 1f, 1f, 1f);
         batch.draw(face, cam.position.x - 16, cam.position.y - 16);
         batch.end();
@@ -241,8 +259,8 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
         int j = jj * GoogleMaps.HEIGHT;
         String road = gm.getRoadMapUrl(i, j);
         String sat = gm.getSatelliteUrl(i, j);
-        if (!pairs.contains(new Pair(i, j, ii, jj, road, sat))) {
-            pairs.add(new Pair(i, j, ii, jj, road, sat));
+        if (!loading.contains(new Pair(i, j, ii, jj, road, sat))) {
+            loading.add(new Pair(i, j, ii, jj, road, sat));
         }
     }
 
@@ -292,8 +310,8 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
         }
     }
 
-    public Texture getTexture(int x, int y, String bb, AssetManager manager) {
-        System.out.println(bb);
+    public Texture getTexture(String bb, AssetManager manager) {
+//        System.out.println(bb);
         try {
             Pixmap pixmap = manager.get(bb, Pixmap.class);
 
