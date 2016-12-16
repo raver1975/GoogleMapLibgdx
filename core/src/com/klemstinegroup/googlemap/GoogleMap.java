@@ -33,7 +33,7 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
 
     ArrayList<Pair> tiles = new ArrayList<Pair>();
 
-    ArrayList<Long> loaded = new ArrayList<Long>();
+//    ArrayList<Long> loaded = new ArrayList<Long>();
 
     private ArrayList<Pair> loading = new ArrayList<Pair>();
     private ArrayList<Pair> remove = new ArrayList<Pair>();
@@ -44,6 +44,8 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
     private int movex;
     private int movey;
     Texture face;
+    private int oldloaded;
+    private int oldloading;
 
     @Override
     public void create() {
@@ -78,18 +80,19 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
         } catch (IOException e) {
             e.printStackTrace();
         }
-        int ptr = 0;
-        StringBuffer buffer = new StringBuffer();
-        try {
-            while ((ptr = is.read()) != -1) {
-                buffer.append((char) ptr);
+        if (is != null) {
+            int ptr = 0;
+            StringBuffer buffer = new StringBuffer();
+            try {
+                while ((ptr = is.read()) != -1) {
+                    buffer.append((char) ptr);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        String location = buffer.toString();
-        String[] data = location.split(";");
-        System.out.println(Arrays.toString(data));
+            String location = buffer.toString();
+            String[] data = location.split(";");
+            System.out.println(Arrays.toString(data));
 //		"statusCode" : "OK",
 //		"statusMessage" : "",
 //		"ipAddress" : "74.125.45.100",
@@ -101,20 +104,27 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
 //		"latitude" : "37.3956",
 //		"longitude" : "-122.076",
 //		"timeZone" : "-08:00"
-        gm.lat = Double.parseDouble(data[8]);
-        gm.lon = Double.parseDouble(data[9]);
+            gm.lat = Double.parseDouble(data[8]);
+            gm.lon = Double.parseDouble(data[9]);
+        } else {
+            gm.lat = 37.3956d;
+            gm.lon = -122.076d;
+        }
     }
 
     @Override
     public void render() {
         for (Pair p : loading) {
             if (p.update()) {
-                p.tex = getTexture(gm.getRoadMapUrl(p.i, p.j), p.managerRoad);
-                p.texRd = getTexture(gm.getSatelliteUrl(p.i, p.j), p.managerSat);
-
+                System.out.println("updating pair");
+                p.texpm = getTexture(gm.getRoadMapUrl(p.i, p.j), p.managerRoad);
+                p.texRdpm = getTexture(gm.getSatelliteUrl(p.i, p.j), p.managerSat);
+                if (p.texpm != null) p.tex = new Texture(p.texpm);
+                if (p.texRdpm != null) p.texRd = new Texture(p.texRdpm);
                 if (p.tex != null && p.texRd != null) {
                     tiles.add(p);
-                    loaded.add(p.ii * 10000000l + p.jj);
+//                    loaded.add(p.ii * 10000000l + p.jj);
+
                 }
                 remove.add(p);
             }
@@ -137,10 +147,10 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
             batch.draw(p.blank, p.x(), p.y());
         }
 
-        int xl = (int) (((cam.position.x - (WIDTH / 2)) / GoogleMaps.WIDTH) - .5);
-        int xh = (int) (((cam.position.x + (WIDTH / 2)) / GoogleMaps.WIDTH) + .5);
-        int yl = (int) (((cam.position.y - (HEIGHT / 2)) / GoogleMaps.HEIGHT) - .5);
-        int yh = (int) (((cam.position.y + (HEIGHT / 2)) / GoogleMaps.HEIGHT + .5));
+        int xl = (int) (((cam.position.x - (WIDTH / 2)) / GoogleMaps.WIDTH) - .5f);
+        int xh = (int) (((cam.position.x + (WIDTH / 2)) / GoogleMaps.WIDTH) + .5f);
+        int yl = (int) (((cam.position.y - (HEIGHT / 2)) / GoogleMaps.HEIGHT) - .5f);
+        int yh = (int) (((cam.position.y + (HEIGHT / 2)) / GoogleMaps.HEIGHT) + .5f);
 
 //        System.out.println(xl+"\t"+xh+"\t"+yl+"\t"+yh);
         ArrayList<Pair> draw = new ArrayList<Pair>();
@@ -148,13 +158,29 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
             for (int j = xl; j <= xh; j++) {
                 Pair test = new Pair(j * GoogleMaps.WIDTH, i * GoogleMaps.HEIGHT);
                 for (Pair p : tiles) {
-//
                     if (p.equals(test)) {
-//                        System.out.println(p.toString() + "\t" + test.toString());
                         draw.add(p);
+                        break;
                     }
                 }
             }
+        }
+
+
+        for (Pair p : tiles) {
+            if (!draw.contains(p)) remove.add(p);
+        }
+        for (Pair p : remove) {
+            p.dispose();
+            tiles.remove(p);
+//            loaded.remove(p.jj * 10000000l + p.ii);
+        }
+        remove.clear();
+        if (oldloaded != tiles.size() || oldloading != loading.size()) {
+            System.out.println("loaded:" + tiles.size() + "\t" + "loading:" + loading.size());
+            oldloaded = tiles.size();
+            oldloading = loading.size();
+
         }
 
         for (Pair mk : draw) {
@@ -259,7 +285,7 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
         int j = jj * GoogleMaps.HEIGHT;
         String road = gm.getRoadMapUrl(i, j);
         String sat = gm.getSatelliteUrl(i, j);
-        if (!loading.contains(new Pair(i, j, ii, jj, road, sat))) {
+        if (!tiles.contains(new Pair(i, j))&&!loading.contains(new Pair(i, j))) {
             loading.add(new Pair(i, j, ii, jj, road, sat));
         }
     }
@@ -297,33 +323,33 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
 
     public void moveCamera(int x, int y) {
         cam.translate(x, y, 0);
-        int xl = (int) (((cam.position.x - (WIDTH / 2)) / GoogleMaps.WIDTH) - .5);
-        int xh = (int) (((cam.position.x + (WIDTH / 2)) / GoogleMaps.WIDTH) + .5);
-        int yl = (int) (((cam.position.y - (HEIGHT / 2)) / GoogleMaps.HEIGHT) - .5);
-        int yh = (int) (((cam.position.y + (HEIGHT / 2)) / GoogleMaps.HEIGHT + .5));
+        int xl = (int) (((cam.position.x - (WIDTH / 2)) / GoogleMaps.WIDTH) - .5f);
+        int xh = (int) (((cam.position.x + (WIDTH / 2)) / GoogleMaps.WIDTH) + .5f);
+        int yl = (int) (((cam.position.y - (HEIGHT / 2)) / GoogleMaps.HEIGHT) - .5f);
+        int yh = (int) (((cam.position.y + (HEIGHT / 2)) / GoogleMaps.HEIGHT) + .5f);
         for (int i = yl; i <= yh; i++) {
             for (int j = xl; j <= xh; j++) {
-                if (!loaded.contains(j * 10000000l + i)) {
+                if (!tiles.contains(new Pair(j, i))) {
                     shift(j, i);
                 }
             }
         }
     }
 
-    public Texture getTexture(String bb, AssetManager manager) {
+    public Pixmap getTexture(String bb, AssetManager manager) {
 //        System.out.println(bb);
         try {
             Pixmap pixmap = manager.get(bb, Pixmap.class);
-
+            System.out.println(bb);
             Pixmap potPixmap = new Pixmap(GoogleMaps.WIDTH, GoogleMaps.HEIGHT,
                     pixmap.getFormat());
             potPixmap.drawPixmap(pixmap, 0, 0, GoogleMaps.WIDTH, GoogleMaps.HEIGHT, 0, 0,
                     GoogleMaps.WIDTH, GoogleMaps.HEIGHT);
-            Texture nonPotTexture = new Texture(
-                    potPixmap);
+//            Texture nonPotTexture = new Texture(
+//                    potPixmap);
             pixmap.dispose();
-            potPixmap.dispose();
-            return nonPotTexture;
+//            potPixmap.dispose();
+            return potPixmap;
         } catch (Exception e) {
             e.printStackTrace();
             return null;
