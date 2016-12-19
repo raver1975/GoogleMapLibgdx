@@ -124,9 +124,15 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
                 if (p.texRdpm != null) p.texRd = new Texture(p.texRdpm);
                 if (p.managerRoad!=null){
                     System.out.println("writing pixmap:"+p);
-                    PixmapIO.writeCIM(Gdx.files.local("tex" + p.ii + "_" + p.jj),p.texpm);
-                    PixmapIO.writeCIM(Gdx.files.local("texRd" + p.ii + "_" + p.jj),p.texRdpm);
+                    PixmapIO.writeCIM(Gdx.files.local("tex" + p.ii + "_" + p.jj+".cim"),p.texpm);
+                    PixmapIO.writeCIM(Gdx.files.local("texRd" + p.ii + "_" + p.jj+".cim"),p.texRdpm);
+
+                    PixmapIO.writePNG(Gdx.files.local("tex" + p.ii + "_" + p.jj+".png"),p.texpm);
+                    PixmapIO.writePNG(Gdx.files.local("texRd" + p.ii + "_" + p.jj+".png"),p.texRdpm);
+
+
                 }
+
                 if (p.tex != null && p.texRd != null) {
                     tiles.add(p);
 //                    loaded.add(p.ii * 10000000l + p.jj);

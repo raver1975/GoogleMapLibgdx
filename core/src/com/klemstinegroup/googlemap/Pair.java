@@ -32,8 +32,8 @@ public class Pair implements AssetErrorListener {
         blank = getBlank();
         try {
             System.out.println("loading pixmap:"+this);
-            texpm=PixmapIO.readCIM(Gdx.files.local("tex" + ii + "_" + jj));
-            texRdpm=PixmapIO.readCIM(Gdx.files.local("texRd" + ii + "_" + jj));
+            texpm=PixmapIO.readCIM(Gdx.files.local("tex" + ii + "_" + jj+".cim"));
+            texRdpm=PixmapIO.readCIM(Gdx.files.local("texRd" + ii + "_" + jj+".cim"));
             System.out.println("successfully loaded");
         }
         catch(GdxRuntimeException e){

@@ -7,7 +7,7 @@ public class GoogleMaps {
 
 	public double lat = 44.253653;
 	public double lon = -88.405523;
-	public int zoom = 16;
+	public int zoom = 21;
 
 	static final double GOOGLEOFFSET = 268435456;
 	static final double GOOGLEOFFSET_RADIUS = GOOGLEOFFSET / Math.PI;
@@ -70,7 +70,7 @@ public class GoogleMaps {
 				+"style=feature:landscape.natural|element:geometry|color:0x00ff00&"
 				+"style=feature:administrative|element:geometry|lightness:-100&"
 				+"style=feature:poi|element:geometry|color:0xff00ff&&"
-				+"style=feature:transit|element:geometry|lightness:-100&"
+				+"style=feature:transit|element:geometry|color:0xffffff&"
 				+"style=feature:water|element:geometry|color:0x0000ff&"
 				+"style=feature:all|element:labels|visibility:off&key=AIzaSyAsj-GadPbVpK0-G-HxHxbcPKuSLUme5xE";
 	}
