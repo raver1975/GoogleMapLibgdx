@@ -17,6 +17,7 @@ import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.PixmapIO;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
@@ -117,10 +118,15 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
         for (Pair p : loading) {
             if (p.update()) {
                 System.out.println("updating pair");
-                p.texpm = getTexture(gm.getRoadMapUrl(p.i, p.j), p.managerRoad);
-                p.texRdpm = getTexture(gm.getSatelliteUrl(p.i, p.j), p.managerSat);
+                if (p.texpm==null)p.texpm = getTexture(gm.getRoadMapUrl(p.i, p.j), p.managerRoad,true);
+                if (p.texRdpm==null)p.texRdpm = getTexture(gm.getSatelliteUrl(p.i, p.j), p.managerSat,false);
                 if (p.texpm != null) p.tex = new Texture(p.texpm);
                 if (p.texRdpm != null) p.texRd = new Texture(p.texRdpm);
+                if (p.managerRoad!=null){
+                    System.out.println("writing pixmap:"+p);
+                    PixmapIO.writeCIM(Gdx.files.local("tex" + p.ii + "_" + p.jj),p.texpm);
+                    PixmapIO.writeCIM(Gdx.files.local("texRd" + p.ii + "_" + p.jj),p.texRdpm);
+                }
                 if (p.tex != null && p.texRd != null) {
                     tiles.add(p);
 //                    loaded.add(p.ii * 10000000l + p.jj);
@@ -336,8 +342,9 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
         }
     }
 
-    public Pixmap getTexture(String bb, AssetManager manager) {
+    public Pixmap getTexture(String bb, AssetManager manager, boolean b) {
 //        System.out.println(bb);
+
         try {
             Pixmap pixmap = manager.get(bb, Pixmap.class);
             System.out.println(bb);

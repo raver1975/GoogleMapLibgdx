@@ -72,7 +72,7 @@ public class GoogleMaps {
 				+"style=feature:poi|element:geometry|color:0xff00ff&&"
 				+"style=feature:transit|element:geometry|lightness:-100&"
 				+"style=feature:water|element:geometry|color:0x0000ff&"
-				+"style=feature:all|element:labels|visibility:off";
+				+"style=feature:all|element:labels|visibility:off&key=AIzaSyAsj-GadPbVpK0-G-HxHxbcPKuSLUme5xE";
 	}
 
 	String getSatelliteUrl(int x,int y) {
@@ -81,7 +81,7 @@ public class GoogleMaps {
 		return "http://maps.googleapis.com/maps/api/staticmap?" + "center="
 				+ templat + "," + templon + "&" + "zoom=" + zoom + "&"
 				+ "format=png32&" + "sensor=false&" + "size=" + WIDTH + "x"
-				+ (HEIGHT + 25) + "&" + "maptype=satellite";
+				+ (HEIGHT + 25) + "&" + "maptype=satellite&key=AIzaSyAsj-GadPbVpK0-G-HxHxbcPKuSLUme5xE";
 	}
 
 	

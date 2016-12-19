@@ -1,12 +1,15 @@
 package com.klemstinegroup.googlemap;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetDescriptor;
 import com.badlogic.gdx.assets.AssetErrorListener;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.assets.loaders.PixmapLoader;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.PixmapIO;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.utils.GdxRuntimeException;
 
 public class Pair implements AssetErrorListener {
     int i, j, ii, jj;
@@ -25,16 +28,29 @@ public class Pair implements AssetErrorListener {
         this.j = j;
         this.ii = ii;
         this.jj = jj;
-        blank = getBlank();
-        managerSat = new AssetManager();
-        managerSat.setLoader(Pixmap.class, new PixmapLoader(new URLHandle()));
-        managerSat.setErrorListener(this);
-        managerSat.load(sat, Pixmap.class);
 
-        managerRoad = new AssetManager();
-        managerRoad.setLoader(Pixmap.class, new PixmapLoader(new URLHandle()));
-        managerRoad.setErrorListener(this);
-        managerRoad.load(road, Pixmap.class);
+        blank = getBlank();
+        try {
+            System.out.println("loading pixmap:"+this);
+            texpm=PixmapIO.readCIM(Gdx.files.local("tex" + ii + "_" + jj));
+            texRdpm=PixmapIO.readCIM(Gdx.files.local("texRd" + ii + "_" + jj));
+            System.out.println("successfully loaded");
+        }
+        catch(GdxRuntimeException e){
+            System.out.println("no pixmap saved");
+            managerSat = new AssetManager();
+            managerSat.setLoader(Pixmap.class, new PixmapLoader(new URLHandle()));
+            managerSat.setErrorListener(this);
+            managerSat.load(sat, Pixmap.class);
+
+            managerRoad = new AssetManager();
+            managerRoad.setLoader(Pixmap.class, new PixmapLoader(new URLHandle()));
+            managerRoad.setErrorListener(this);
+            managerRoad.load(road, Pixmap.class);
+        }
+
+
+
 
     }
 
@@ -73,7 +89,7 @@ public class Pair implements AssetErrorListener {
     }
 
     public boolean update() {
-        return managerRoad.update() && managerSat.update();
+        return (managerRoad==null||managerSat==null)||(managerRoad.update() && managerSat.update());
 
     }
 
