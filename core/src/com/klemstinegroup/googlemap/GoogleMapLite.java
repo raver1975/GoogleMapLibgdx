@@ -1,12 +1,5 @@
 package com.klemstinegroup.googlemap;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
@@ -14,30 +7,41 @@ import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.assets.AssetDescriptor;
 import com.badlogic.gdx.assets.AssetErrorListener;
 import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.PixmapIO;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.utils.GdxRuntimeException;
 
-public class GoogleMap implements ApplicationListener, AssetErrorListener,
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+
+public class GoogleMapLite implements ApplicationListener, AssetErrorListener,
         InputProcessor {
 
     static float WIDTH = 480;
     static float HEIGHT = 320;
-    private static Texture blank;
     int x = 0;
     int y = 0;
+    int cnt = 5;
+    static Texture blank = null;
 
     private OrthographicCamera cam;
 
-    ArrayList<Pair> tiles = new ArrayList<Pair>();
+    ArrayList<PairLite> tiles = new ArrayList<PairLite>();
 
 //    ArrayList<Long> loaded = new ArrayList<Long>();
 
-    private ArrayList<Pair> loading = new ArrayList<Pair>();
-    private ArrayList<Pair> remove = new ArrayList<Pair>();
+    private ArrayList<PairLite> loading = new ArrayList<PairLite>();
+    private ArrayList<PairLite> prevload = new ArrayList<PairLite>();
+    private ArrayList<PairLite> remove = new ArrayList<PairLite>();
 
     private float rotationSpeed;
     private GoogleMapGrabber gm = new GoogleMapGrabber();
@@ -47,18 +51,27 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
     Texture face;
     private int oldloaded;
     private int oldloading;
+    private Texture loadedtile;
 
     @Override
     public void create() {
-
         getLocation();
+        //auto();
+        blank = PairLite.getBlank(1);
+        loadedtile=blank = PairLite.getBlank(2);
 
         WIDTH = Gdx.graphics.getWidth();
         HEIGHT = Gdx.graphics.getHeight();
         rotationSpeed = 0.5f;
-        face = new Texture(
-                new URLHandle(
-                        "http://cdn1.sbnation.com/profile_images/592671/smiley_face_small.jpg"));
+        Pixmap facepx = new Pixmap(20, 20, Pixmap.Format.RGBA8888);
+        facepx.setColor(Color.CLEAR);
+        facepx.fill();
+        facepx.setColor(Color.RED);
+        facepx.fillCircle(10, 10, 9);
+        face = new Texture(facepx);
+//        face = new Texture(
+//                new URLHandle(
+//                        "http://cdn1.sbnation.com/profile_images/592671/smiley_face_small.jpg"));
         cam = new OrthographicCamera(WIDTH, HEIGHT);
         cam.position.set(0, 0, 0);
         moveCamera(0, 0);
@@ -67,6 +80,29 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
         Gdx.input.setInputProcessor(this);
 
     }
+
+//    private void auto() {
+//        System.out.println("starting");
+//        int x = 0, y = 0, dx = 0, dy = -1;
+////        int t = Math.max(X,Y);
+////        int maxI = t*t;
+//        int t = 0;
+//
+//        while (cnt-- > 0) {
+////            if ((-X/2 <= x) && (x <= X/2) && (-Y/2 <= y) && (y <= Y/2)) {
+//            System.out.println(x + "," + y);
+//            String sat = gm.getSatelliteUrl(x, y);
+//            PairLite p = new PairLite(x, y, sat);
+//            loading.add(p);
+//            if ((x == y) || ((x < 0) && (x == -y)) || ((x > 0) && (x == 1 - y))) {
+//                t = dx;
+//                dx = -dy;
+//                dy = t;
+//            }
+//            x += dx;
+//            y += dy;
+//        }
+//    }
 
     private void getLocation() {
         URL url = null;
@@ -113,32 +149,50 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
         }
     }
 
+    static int max = 2;
+
     @Override
     public void render() {
-        for (Pair p : loading) {
+//        int ready = 0;
+//        for (PairLite p : loading) {
+//            if (p.init) {
+//                ready++;
+//            }
+//        }
+//        if (ready < max) {
+//            int cnt1 = max;
+//            for (PairLite p : loading) {
+//                if (!p.init) {
+//                    cnt1--;
+//                    p.init();
+//                }
+//                if (cnt1 <= 0) break;
+//            }
+//        }
+        for (PairLite p : loading) {
+
             if (p.update()) {
-                System.out.println("updating pair");
-                if (p.dataPix ==null)p.dataPix = getTexture(gm.getRoadMapUrl(p.pixelX, p.pixelY), p.managerRoad,true);
-                if (p.satPix ==null)p.satPix = getTexture(gm.getSatelliteUrl(p.pixelX, p.pixelY), p.managerSat,false);
-                if (p.dataPix != null) p.dataTex = new Texture(p.dataPix);
-                if (p.satPix != null) p.satTex = new Texture(p.satPix);
-                if (p.managerRoad!=null){
-                    System.out.println("writing pixmap:"+p);
-                    PixmapIO.writeCIM(Gdx.files.local("dataTex" + p.tileX + "_" + p.tileY +".cim"),p.dataPix);
-                    PixmapIO.writeCIM(Gdx.files.local("satTex" + p.tileX + "_" + p.tileY +".cim"),p.satPix);
-
-                    PixmapIO.writePNG(Gdx.files.local("dataTex" + p.tileX + "_" + p.tileY +".png"),p.dataPix);
-                    PixmapIO.writePNG(Gdx.files.local("satTex" + p.tileX + "_" + p.tileY +".png"),p.satPix);
-
-
+//                if (p.dataPix ==null)p.dataPix = getTexture(gm.getRoadMapUrl(p.pixelX, p.pixelY), p.managerRoad,true);
+                if (p.satPix == null) {
+                    p.satPix = getTexture(gm.getSatelliteUrl(p.pixelX, p.pixelY), p.managerSat, false);
                 }
+//                if (p.dataPix != null) p.dataTex = new Texture(p.dataPix);
+                if (p.satPix != null) {
+                    p.satTex = new Texture(p.satPix);
+                    if (p.managerSat != null) {
+                        System.out.println("writing pixmap:" + p);
+//                    PixmapIO.writeCIM(Gdx.files.local("dataTex" + p.tileX + "_" + p.tileY +".cim"),p.dataPix);
+                        PixmapIO.writeCIM(Gdx.files.local("satTex" + p.tileX + "_" + p.tileY + ".cim"), p.satPix);
 
-                if (p.dataTex != null && p.satTex != null) {
+//                    PixmapIO.writePNG(Gdx.files.local("dataTex" + p.tileX + "_" + p.tileY +".png"),p.dataPix);
+                        PixmapIO.writePNG(Gdx.files.local("satTex" + p.tileX + "_" + p.tileY + ".png"), p.satPix);
+                    }
                     tiles.add(p);
-//                    loaded.add(p.tileX * 10000000l + p.tileY);
-
+                    prevload.add(p);
+                    remove.add(p);
                 }
-                remove.add(p);
+
+
             }
         }
         while (remove.size() > 0) {
@@ -155,8 +209,18 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
         batch.begin();
         batch.setColor(1f, 1f, 1f, 1f);
 
-        for (Pair p : loading) {
-            batch.draw(p.blank, p.x(), p.y());
+
+
+        if (loadedtile != null) {
+            for (PairLite p : prevload) {
+                batch.draw(loadedtile, p.x(), p.y());
+            }
+        }
+
+        if (blank != null) {
+            for (PairLite p : loading) {
+                batch.draw(blank, p.x(), p.y());
+            }
         }
 
         int xl = (int) (((cam.position.x - (WIDTH / 2)) / GoogleMapGrabber.WIDTH) - .5f);
@@ -165,11 +229,11 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
         int yh = (int) (((cam.position.y + (HEIGHT / 2)) / GoogleMapGrabber.HEIGHT) + .5f);
 
 //        System.out.println(xl+"\t"+xh+"\t"+yl+"\t"+yh);
-        ArrayList<Pair> draw = new ArrayList<Pair>();
+        ArrayList<PairLite> draw = new ArrayList<PairLite>();
         for (int i = yl; i <= yh; i++) {
             for (int j = xl; j <= xh; j++) {
-                Pair test = new Pair(j * GoogleMapGrabber.WIDTH, i * GoogleMapGrabber.HEIGHT);
-                for (Pair p : tiles) {
+                PairLite test = new PairLite(j * GoogleMapGrabber.WIDTH, i * GoogleMapGrabber.HEIGHT);
+                for (PairLite p : tiles) {
                     if (p.equals(test)) {
                         draw.add(p);
                         break;
@@ -179,10 +243,10 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
         }
 
 
-        for (Pair p : tiles) {
+        for (PairLite p : tiles) {
             if (!draw.contains(p)) remove.add(p);
         }
-        for (Pair p : remove) {
+        for (PairLite p : remove) {
             p.dispose();
             tiles.remove(p);
 //            loaded.remove(p.tileY * 10000000l + p.tileX);
@@ -195,11 +259,11 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
 
         }
 
-        for (Pair mk : draw) {
+        for (PairLite mk : draw) {
             batch.setColor(1f, 1f, 1f, 1f);
-            if (mk.dataTex != null) {
-                batch.draw(mk.dataTex, mk.x(), mk.y());
-            }
+//            if (mk.dataTex != null) {
+//                batch.draw(mk.dataTex, mk.x(), mk.y());
+//            }
             batch.setColor(1f, 1f, 1f, .8f);
             if (mk.satTex != null)
                 batch.draw(mk.satTex, mk.x(), mk.y());
@@ -243,8 +307,8 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
 
     @Override
     public void resize(int width, int height) {
-       WIDTH=width;
-       HEIGHT=height;
+        WIDTH = width;
+        HEIGHT = height;
 //       cam.setToOrtho(false,width,height);
     }
 
@@ -297,8 +361,8 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
         int j = jj * GoogleMapGrabber.HEIGHT;
         String road = gm.getRoadMapUrl(i, j);
         String sat = gm.getSatelliteUrl(i, j);
-        if (!tiles.contains(new Pair(i, j))&&!loading.contains(new Pair(i, j))) {
-            loading.add(new Pair(i, j, ii, jj, road, sat));
+        if (!tiles.contains(new PairLite(i, j)) && !loading.contains(new PairLite(i, j))) {
+            loading.add(new PairLite(ii, jj, sat));
         }
     }
 
@@ -341,7 +405,7 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
         int yh = (int) (((cam.position.y + (HEIGHT / 2f)) / GoogleMapGrabber.HEIGHT) + .5f);
         for (int i = yl; i <= yh; i++) {
             for (int j = xl; j <= xh; j++) {
-                if (!tiles.contains(new Pair(j, i))) {
+                if (!tiles.contains(new PairLite(j, i))) {
                     shift(j, i);
                 }
             }
@@ -363,8 +427,11 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
             pixmap.dispose();
 //            potPixmap.dispose();
             return potPixmap;
+        } catch (GdxRuntimeException e) {
+//            e.printStackTrace();
+            return null;
         } catch (Exception e) {
-            e.printStackTrace();
+//            e.printStackTrace();
             return null;
         }
     }

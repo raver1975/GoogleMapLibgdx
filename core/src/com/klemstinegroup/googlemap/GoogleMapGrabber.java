@@ -1,13 +1,13 @@
 package com.klemstinegroup.googlemap;
 
-public class GoogleMaps {
+public class GoogleMapGrabber {
 
 	public static int WIDTH = 512;
 	public static int HEIGHT = 512;
 
 	public double lat = 44.253653;
 	public double lon = -88.405523;
-	public int zoom = 21;
+	public int zoom = 20;
 
 	static final double GOOGLEOFFSET = 268435456;
 	static final double GOOGLEOFFSET_RADIUS = GOOGLEOFFSET / Math.PI;
@@ -75,7 +75,7 @@ public class GoogleMaps {
 				+"style=feature:all|element:labels|visibility:off&key=AIzaSyAsj-GadPbVpK0-G-HxHxbcPKuSLUme5xE";
 	}
 
-	String getSatelliteUrl(int x,int y) {
+	public String getSatelliteUrl(int x, int y) {
 		double templon = adjustLonByPixels(lon, x, zoom);
 		double templat = adjustLatByPixels(lat, -y, zoom);
 		return "http://maps.googleapis.com/maps/api/staticmap?" + "center="
