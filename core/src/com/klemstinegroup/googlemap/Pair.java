@@ -74,12 +74,12 @@ public class Pair implements AssetErrorListener {
 
     public static Texture getBlank() {
 //        if (blank == null) {
-        Pixmap pm = new Pixmap(GoogleMapGrabber.WIDTH, GoogleMapGrabber.HEIGHT, Pixmap.Format.RGBA8888);
+        Pixmap pm = new Pixmap(GoogleMapGrabber.SIZE, GoogleMapGrabber.SIZE, Pixmap.Format.RGBA8888);
         pm.setColor(Color.BLACK);
         pm.fill();
         pm.setColor(colors[(int) (Math.random() * colors.length)]);
         for (int i = 0; i < 5; i++) {
-            pm.drawRectangle(i, i, GoogleMapGrabber.WIDTH - 2 * i, GoogleMapGrabber.HEIGHT - 2 * i);
+            pm.drawRectangle(i, i, GoogleMapGrabber.SIZE - 2 * i, GoogleMapGrabber.SIZE- 2 * i);
         }
         return new Texture(pm);
 //        }
@@ -97,11 +97,11 @@ public class Pair implements AssetErrorListener {
     }
 
     public float y() {
-        return pixelY - GoogleMapGrabber.HEIGHT / 2;
+        return pixelY - GoogleMapGrabber.SIZE/ 2;
     }
 
     public float x() {
-        return pixelX - GoogleMapGrabber.WIDTH / 2;
+        return pixelX - GoogleMapGrabber.SIZE / 2;
     }
 
     @Override

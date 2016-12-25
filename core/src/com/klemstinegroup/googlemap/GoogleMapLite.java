@@ -30,17 +30,18 @@ public class GoogleMapLite implements ApplicationListener, AssetErrorListener,
     static float HEIGHT = 320;
     int x = 0;
     int y = 0;
-    int cnt = 5;
-    static Texture blank = null;
+    int cnt = 100;
+
 
     private OrthographicCamera cam;
 
-    ArrayList<PairLite> tiles = new ArrayList<PairLite>();
+    ArrayList<PairLite> visibleList = new ArrayList<PairLite>();
 
 //    ArrayList<Long> loaded = new ArrayList<Long>();
 
-    private ArrayList<PairLite> loading = new ArrayList<PairLite>();
-    private ArrayList<PairLite> prevload = new ArrayList<PairLite>();
+    private ArrayList<PairLite> autoList = new ArrayList<PairLite>();
+    private ArrayList<PairLite> loadingList = new ArrayList<PairLite>();
+    private ArrayList<PairLite> allList = new ArrayList<PairLite>();
     private ArrayList<PairLite> remove = new ArrayList<PairLite>();
 
     private float rotationSpeed;
@@ -51,14 +52,14 @@ public class GoogleMapLite implements ApplicationListener, AssetErrorListener,
     Texture face;
     private int oldloaded;
     private int oldloading;
-    private Texture loadedtile;
-
+    static Texture loadedtile=null;
+    static Texture blank = null;
     @Override
     public void create() {
         getLocation();
-        //auto();
+        auto();
         blank = PairLite.getBlank(1);
-        loadedtile=blank = PairLite.getBlank(2);
+        loadedtile =PairLite.getBlank(2);
 
         WIDTH = Gdx.graphics.getWidth();
         HEIGHT = Gdx.graphics.getHeight();
@@ -81,28 +82,28 @@ public class GoogleMapLite implements ApplicationListener, AssetErrorListener,
 
     }
 
-//    private void auto() {
-//        System.out.println("starting");
-//        int x = 0, y = 0, dx = 0, dy = -1;
-////        int t = Math.max(X,Y);
-////        int maxI = t*t;
-//        int t = 0;
-//
-//        while (cnt-- > 0) {
-////            if ((-X/2 <= x) && (x <= X/2) && (-Y/2 <= y) && (y <= Y/2)) {
-//            System.out.println(x + "," + y);
-//            String sat = gm.getSatelliteUrl(x, y);
-//            PairLite p = new PairLite(x, y, sat);
-//            loading.add(p);
-//            if ((x == y) || ((x < 0) && (x == -y)) || ((x > 0) && (x == 1 - y))) {
-//                t = dx;
-//                dx = -dy;
-//                dy = t;
-//            }
-//            x += dx;
-//            y += dy;
-//        }
-//    }
+    private void auto() {
+        System.out.println("starting");
+        int x = 0, y = 0, dx = 0, dy = -1;
+//        int t = Math.max(X,Y);
+//        int maxI = t*t;
+        int t = 0;
+
+        while (cnt-- > 0) {
+//            if ((-X/2 <= x) && (x <= X/2) && (-Y/2 <= y) && (y <= Y/2)) {
+            System.out.println(x + "," + y);
+            String sat = gm.getSatelliteUrl(x, y);
+            PairLite p = new PairLite(x, y, sat);
+            autoList.add(p);
+            if ((x == y) || ((x < 0) && (x == -y)) || ((x > 0) && (x == 1 - y))) {
+                t = dx;
+                dx = -dy;
+                dy = t;
+            }
+            x += dx;
+            y += dy;
+        }
+    }
 
     private void getLocation() {
         URL url = null;
@@ -154,14 +155,14 @@ public class GoogleMapLite implements ApplicationListener, AssetErrorListener,
     @Override
     public void render() {
 //        int ready = 0;
-//        for (PairLite p : loading) {
+//        for (PairLite p : loadingList) {
 //            if (p.init) {
 //                ready++;
 //            }
 //        }
 //        if (ready < max) {
 //            int cnt1 = max;
-//            for (PairLite p : loading) {
+//            for (PairLite p : loadingList) {
 //                if (!p.init) {
 //                    cnt1--;
 //                    p.init();
@@ -169,8 +170,14 @@ public class GoogleMapLite implements ApplicationListener, AssetErrorListener,
 //                if (cnt1 <= 0) break;
 //            }
 //        }
-        for (PairLite p : loading) {
-
+        if (loadingList.size() <max && autoList.size() > 0) {
+            loadingList.add(autoList.remove(0));
+        }
+        for (PairLite p : loadingList) {
+            if (p.managerSat != null && p.managerSat.getProgress() != p.progress) {
+                System.out.println(p + "\t" + p.managerSat.getProgress() + "%");
+                p.progress = p.managerSat.getProgress();
+            }
             if (p.update()) {
 //                if (p.dataPix ==null)p.dataPix = getTexture(gm.getRoadMapUrl(p.pixelX, p.pixelY), p.managerRoad,true);
                 if (p.satPix == null) {
@@ -187,8 +194,8 @@ public class GoogleMapLite implements ApplicationListener, AssetErrorListener,
 //                    PixmapIO.writePNG(Gdx.files.local("dataTex" + p.tileX + "_" + p.tileY +".png"),p.dataPix);
                         PixmapIO.writePNG(Gdx.files.local("satTex" + p.tileX + "_" + p.tileY + ".png"), p.satPix);
                     }
-                    tiles.add(p);
-                    prevload.add(p);
+                    visibleList.add(p);
+                    allList.add(p);
                     remove.add(p);
                 }
 
@@ -196,7 +203,7 @@ public class GoogleMapLite implements ApplicationListener, AssetErrorListener,
             }
         }
         while (remove.size() > 0) {
-            loading.remove(remove.remove(remove.size() - 1));
+            loadingList.remove(remove.remove(remove.size() - 1));
         }
 
 
@@ -210,30 +217,29 @@ public class GoogleMapLite implements ApplicationListener, AssetErrorListener,
         batch.setColor(1f, 1f, 1f, 1f);
 
 
-
         if (loadedtile != null) {
-            for (PairLite p : prevload) {
+            for (PairLite p : allList) {
                 batch.draw(loadedtile, p.x(), p.y());
             }
         }
 
         if (blank != null) {
-            for (PairLite p : loading) {
+            for (PairLite p : loadingList) {
                 batch.draw(blank, p.x(), p.y());
             }
         }
 
-        int xl = (int) (((cam.position.x - (WIDTH / 2)) / GoogleMapGrabber.WIDTH) - .5f);
-        int xh = (int) (((cam.position.x + (WIDTH / 2)) / GoogleMapGrabber.WIDTH) + .5f);
-        int yl = (int) (((cam.position.y - (HEIGHT / 2)) / GoogleMapGrabber.HEIGHT) - .5f);
-        int yh = (int) (((cam.position.y + (HEIGHT / 2)) / GoogleMapGrabber.HEIGHT) + .5f);
+        int xl = (int) (((cam.position.x - (WIDTH / 2)) / GoogleMapGrabber.SIZE) - .5f);
+        int xh = (int) (((cam.position.x + (WIDTH / 2)) / GoogleMapGrabber.SIZE) + .5f);
+        int yl = (int) (((cam.position.y - (HEIGHT / 2)) / GoogleMapGrabber.SIZE) - .5f);
+        int yh = (int) (((cam.position.y + (HEIGHT / 2)) / GoogleMapGrabber.SIZE) + .5f);
 
 //        System.out.println(xl+"\t"+xh+"\t"+yl+"\t"+yh);
         ArrayList<PairLite> draw = new ArrayList<PairLite>();
         for (int i = yl; i <= yh; i++) {
             for (int j = xl; j <= xh; j++) {
-                PairLite test = new PairLite(j * GoogleMapGrabber.WIDTH, i * GoogleMapGrabber.HEIGHT);
-                for (PairLite p : tiles) {
+                PairLite test = new PairLite(j * GoogleMapGrabber.SIZE, i * GoogleMapGrabber.SIZE);
+                for (PairLite p : visibleList) {
                     if (p.equals(test)) {
                         draw.add(p);
                         break;
@@ -243,19 +249,19 @@ public class GoogleMapLite implements ApplicationListener, AssetErrorListener,
         }
 
 
-        for (PairLite p : tiles) {
+        for (PairLite p : visibleList) {
             if (!draw.contains(p)) remove.add(p);
         }
         for (PairLite p : remove) {
             p.dispose();
-            tiles.remove(p);
+            visibleList.remove(p);
 //            loaded.remove(p.tileY * 10000000l + p.tileX);
         }
         remove.clear();
-        if (oldloaded != tiles.size() || oldloading != loading.size()) {
-            System.out.println("loaded:" + tiles.size() + "\t" + "loading:" + loading.size());
-            oldloaded = tiles.size();
-            oldloading = loading.size();
+        if (oldloaded != visibleList.size() || oldloading != loadingList.size()) {
+            System.out.println("auto:"+autoList.size()+"\tvisible:" + visibleList.size() + "\t" + "loading:" + loadingList.size()+"\tall:"+ allList.size());
+            oldloaded = visibleList.size();
+            oldloading = loadingList.size();
 
         }
 
@@ -336,16 +342,16 @@ public class GoogleMapLite implements ApplicationListener, AssetErrorListener,
     @Override
     public boolean keyUp(int keycode) {
         if (keycode == 'j' - 68) {
-            shift(-GoogleMapGrabber.WIDTH, 0);
+            shift(-GoogleMapGrabber.SIZE, 0);
         }
         if (keycode == 'l' - 68) {
-            shift(GoogleMapGrabber.HEIGHT, 0);
+            shift(GoogleMapGrabber.SIZE, 0);
         }
         if (keycode == 'k' - 68) {
-            shift(0, -GoogleMapGrabber.WIDTH);
+            shift(0, -GoogleMapGrabber.SIZE);
         }
         if (keycode == 'i' - 68) {
-            shift(0, GoogleMapGrabber.HEIGHT);
+            shift(0, GoogleMapGrabber.SIZE);
         }
 
         return false;
@@ -357,12 +363,12 @@ public class GoogleMapLite implements ApplicationListener, AssetErrorListener,
     }
 
     private void shift(final int ii, final int jj) {
-        int i = ii * GoogleMapGrabber.WIDTH;
-        int j = jj * GoogleMapGrabber.HEIGHT;
+        int i = ii * GoogleMapGrabber.SIZE;
+        int j = jj * GoogleMapGrabber.SIZE;
         String road = gm.getRoadMapUrl(i, j);
         String sat = gm.getSatelliteUrl(i, j);
-        if (!tiles.contains(new PairLite(i, j)) && !loading.contains(new PairLite(i, j))) {
-            loading.add(new PairLite(ii, jj, sat));
+        if (!visibleList.contains(new PairLite(i, j)) && !loadingList.contains(new PairLite(i, j))) {
+            loadingList.add(new PairLite(ii, jj, sat));
         }
     }
 
@@ -399,13 +405,13 @@ public class GoogleMapLite implements ApplicationListener, AssetErrorListener,
 
     public void moveCamera(int x, int y) {
         cam.translate(x, y, 0);
-        int xl = (int) (((cam.position.x - (WIDTH / 2f)) / GoogleMapGrabber.WIDTH) - .5f);
-        int xh = (int) (((cam.position.x + (WIDTH / 2f)) / GoogleMapGrabber.WIDTH) + .5f);
-        int yl = (int) (((cam.position.y - (HEIGHT / 2f)) / GoogleMapGrabber.HEIGHT) - .5f);
-        int yh = (int) (((cam.position.y + (HEIGHT / 2f)) / GoogleMapGrabber.HEIGHT) + .5f);
+        int xl = (int) (((cam.position.x - (WIDTH / 2f)) / GoogleMapGrabber.SIZE) - .5f);
+        int xh = (int) (((cam.position.x + (WIDTH / 2f)) / GoogleMapGrabber.SIZE) + .5f);
+        int yl = (int) (((cam.position.y - (HEIGHT / 2f)) / GoogleMapGrabber.SIZE) - .5f);
+        int yh = (int) (((cam.position.y + (HEIGHT / 2f)) / GoogleMapGrabber.SIZE) + .5f);
         for (int i = yl; i <= yh; i++) {
             for (int j = xl; j <= xh; j++) {
-                if (!tiles.contains(new PairLite(j, i))) {
+                if (!visibleList.contains(new PairLite(j, i))) {
                     shift(j, i);
                 }
             }
@@ -418,10 +424,10 @@ public class GoogleMapLite implements ApplicationListener, AssetErrorListener,
         try {
             Pixmap pixmap = manager.get(bb, Pixmap.class);
             System.out.println(bb);
-            Pixmap potPixmap = new Pixmap(GoogleMapGrabber.WIDTH, GoogleMapGrabber.HEIGHT,
+            Pixmap potPixmap = new Pixmap(GoogleMapGrabber.SIZE, GoogleMapGrabber.SIZE,
                     pixmap.getFormat());
-            potPixmap.drawPixmap(pixmap, 0, 0, GoogleMapGrabber.WIDTH, GoogleMapGrabber.HEIGHT, 0, 0,
-                    GoogleMapGrabber.WIDTH, GoogleMapGrabber.HEIGHT);
+            potPixmap.drawPixmap(pixmap, 0, 0, GoogleMapGrabber.SIZE, GoogleMapGrabber.SIZE, 0, 0,
+                    GoogleMapGrabber.SIZE, GoogleMapGrabber.SIZE);
 //            Texture nonPotTexture = new Texture(
 //                    potPixmap);
             pixmap.dispose();

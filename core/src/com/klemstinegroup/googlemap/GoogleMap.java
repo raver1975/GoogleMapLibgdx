@@ -159,16 +159,16 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
             batch.draw(p.blank, p.x(), p.y());
         }
 
-        int xl = (int) (((cam.position.x - (WIDTH / 2)) / GoogleMapGrabber.WIDTH) - .5f);
-        int xh = (int) (((cam.position.x + (WIDTH / 2)) / GoogleMapGrabber.WIDTH) + .5f);
-        int yl = (int) (((cam.position.y - (HEIGHT / 2)) / GoogleMapGrabber.HEIGHT) - .5f);
-        int yh = (int) (((cam.position.y + (HEIGHT / 2)) / GoogleMapGrabber.HEIGHT) + .5f);
+        int xl = (int) (((cam.position.x - (WIDTH / 2)) / GoogleMapGrabber.SIZE) - .5f);
+        int xh = (int) (((cam.position.x + (WIDTH / 2)) / GoogleMapGrabber.SIZE) + .5f);
+        int yl = (int) (((cam.position.y - (HEIGHT / 2)) / GoogleMapGrabber.SIZE) - .5f);
+        int yh = (int) (((cam.position.y + (HEIGHT / 2)) / GoogleMapGrabber.SIZE) + .5f);
 
 //        System.out.println(xl+"\t"+xh+"\t"+yl+"\t"+yh);
         ArrayList<Pair> draw = new ArrayList<Pair>();
         for (int i = yl; i <= yh; i++) {
             for (int j = xl; j <= xh; j++) {
-                Pair test = new Pair(j * GoogleMapGrabber.WIDTH, i * GoogleMapGrabber.HEIGHT);
+                Pair test = new Pair(j * GoogleMapGrabber.SIZE, i * GoogleMapGrabber.SIZE);
                 for (Pair p : tiles) {
                     if (p.equals(test)) {
                         draw.add(p);
@@ -272,16 +272,16 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
     @Override
     public boolean keyUp(int keycode) {
         if (keycode == 'j' - 68) {
-            shift(-GoogleMapGrabber.WIDTH, 0);
+            shift(-GoogleMapGrabber.SIZE, 0);
         }
         if (keycode == 'l' - 68) {
-            shift(GoogleMapGrabber.HEIGHT, 0);
+            shift(GoogleMapGrabber.SIZE, 0);
         }
         if (keycode == 'k' - 68) {
-            shift(0, -GoogleMapGrabber.WIDTH);
+            shift(0, -GoogleMapGrabber.SIZE);
         }
         if (keycode == 'i' - 68) {
-            shift(0, GoogleMapGrabber.HEIGHT);
+            shift(0, GoogleMapGrabber.SIZE);
         }
 
         return false;
@@ -293,8 +293,8 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
     }
 
     private void shift(final int ii, final int jj) {
-        int i = ii * GoogleMapGrabber.WIDTH;
-        int j = jj * GoogleMapGrabber.HEIGHT;
+        int i = ii * GoogleMapGrabber.SIZE;
+        int j = jj * GoogleMapGrabber.SIZE;
         String road = gm.getRoadMapUrl(i, j);
         String sat = gm.getSatelliteUrl(i, j);
         if (!tiles.contains(new Pair(i, j))&&!loading.contains(new Pair(i, j))) {
@@ -335,10 +335,10 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
 
     public void moveCamera(int x, int y) {
         cam.translate(x, y, 0);
-        int xl = (int) (((cam.position.x - (WIDTH / 2f)) / GoogleMapGrabber.WIDTH) - .5f);
-        int xh = (int) (((cam.position.x + (WIDTH / 2f)) / GoogleMapGrabber.WIDTH) + .5f);
-        int yl = (int) (((cam.position.y - (HEIGHT / 2f)) / GoogleMapGrabber.HEIGHT) - .5f);
-        int yh = (int) (((cam.position.y + (HEIGHT / 2f)) / GoogleMapGrabber.HEIGHT) + .5f);
+        int xl = (int) (((cam.position.x - (WIDTH / 2f)) / GoogleMapGrabber.SIZE) - .5f);
+        int xh = (int) (((cam.position.x + (WIDTH / 2f)) / GoogleMapGrabber.SIZE) + .5f);
+        int yl = (int) (((cam.position.y - (HEIGHT / 2f)) / GoogleMapGrabber.SIZE) - .5f);
+        int yh = (int) (((cam.position.y + (HEIGHT / 2f)) / GoogleMapGrabber.SIZE) + .5f);
         for (int i = yl; i <= yh; i++) {
             for (int j = xl; j <= xh; j++) {
                 if (!tiles.contains(new Pair(j, i))) {
@@ -354,10 +354,10 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
         try {
             Pixmap pixmap = manager.get(bb, Pixmap.class);
             System.out.println(bb);
-            Pixmap potPixmap = new Pixmap(GoogleMapGrabber.WIDTH, GoogleMapGrabber.HEIGHT,
+            Pixmap potPixmap = new Pixmap(GoogleMapGrabber.SIZE, GoogleMapGrabber.SIZE,
                     pixmap.getFormat());
-            potPixmap.drawPixmap(pixmap, 0, 0, GoogleMapGrabber.WIDTH, GoogleMapGrabber.HEIGHT, 0, 0,
-                    GoogleMapGrabber.WIDTH, GoogleMapGrabber.HEIGHT);
+            potPixmap.drawPixmap(pixmap, 0, 0, GoogleMapGrabber.SIZE, GoogleMapGrabber.SIZE, 0, 0,
+                    GoogleMapGrabber.SIZE, GoogleMapGrabber.SIZE);
 //            Texture nonPotTexture = new Texture(
 //                    potPixmap);
             pixmap.dispose();

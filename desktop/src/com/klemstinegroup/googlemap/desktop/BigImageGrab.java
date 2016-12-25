@@ -9,7 +9,6 @@ import com.badlogic.gdx.graphics.PixmapIO;
 import com.badlogic.gdx.graphics.Texture;
 import com.klemstinegroup.googlemap.GoogleMap;
 import com.klemstinegroup.googlemap.GoogleMapGrabber;
-import com.klemstinegroup.googlemap.GoogleMapLite;
 import com.klemstinegroup.googlemap.PairLite;
 
 import java.io.IOException;
@@ -157,10 +156,10 @@ public class BigImageGrab {
         try {
             Pixmap pixmap = manager.get(bb, Pixmap.class);
             System.out.println(bb);
-            Pixmap potPixmap = new Pixmap(GoogleMapGrabber.WIDTH, GoogleMapGrabber.HEIGHT,
+            Pixmap potPixmap = new Pixmap(GoogleMapGrabber.SIZE, GoogleMapGrabber.SIZE,
                     pixmap.getFormat());
-            potPixmap.drawPixmap(pixmap, 0, 0, GoogleMapGrabber.WIDTH, GoogleMapGrabber.HEIGHT, 0, 0,
-                    GoogleMapGrabber.WIDTH, GoogleMapGrabber.HEIGHT);
+            potPixmap.drawPixmap(pixmap, 0, 0, GoogleMapGrabber.SIZE, GoogleMapGrabber.SIZE, 0, 0,
+                    GoogleMapGrabber.SIZE, GoogleMapGrabber.SIZE);
 //            Texture nonPotTexture = new Texture(
 //                    potPixmap);
             pixmap.dispose();

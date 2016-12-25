@@ -55,7 +55,7 @@ public class PairLite implements AssetErrorListener {
     }
 
     public PairLite(int ii, int jj, String sat) {
-        this(ii * GoogleMapGrabber.WIDTH, jj * GoogleMapGrabber.HEIGHT, ii, jj, sat);
+        this(ii * GoogleMapGrabber.SIZE, jj * GoogleMapGrabber.SIZE, ii, jj, sat);
     }
 
     @Override
@@ -70,12 +70,12 @@ public class PairLite implements AssetErrorListener {
 
     public static Texture getBlank(int cc) {
 //        if (blank == null) {
-        Pixmap pm = new Pixmap(GoogleMapGrabber.WIDTH, GoogleMapGrabber.HEIGHT, Pixmap.Format.RGBA8888);
+        Pixmap pm = new Pixmap(GoogleMapGrabber.SIZE, GoogleMapGrabber.SIZE, Pixmap.Format.RGBA8888);
         pm.setColor(Color.BLACK);
         pm.fill();
         pm.setColor(colors[cc]);
-        for (int i = 0; i < 5; i++) {
-            pm.drawRectangle(i, i, GoogleMapGrabber.WIDTH - 2 * i, GoogleMapGrabber.HEIGHT - 2 * i);
+        for (int i = 0; i < 50; i++) {
+            pm.drawRectangle(i, i, GoogleMapGrabber.SIZE - 2 * i, GoogleMapGrabber.SIZE - 2 * i);
         }
         return new Texture(pm);
 //        }
@@ -93,11 +93,11 @@ public class PairLite implements AssetErrorListener {
     }
 
     public float y() {
-        return pixelY - GoogleMapGrabber.HEIGHT / 2;
+        return pixelY - GoogleMapGrabber.SIZE / 2;
     }
 
     public float x() {
-        return pixelX - GoogleMapGrabber.WIDTH / 2;
+        return pixelX - GoogleMapGrabber.SIZE / 2;
     }
 
     @Override

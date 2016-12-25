@@ -2,12 +2,10 @@ package com.klemstinegroup.googlemap;
 
 public class GoogleMapGrabber {
 
-	public static int WIDTH = 512;
-	public static int HEIGHT = 512;
-
+	public static int SIZE = 512;
 	public double lat = 44.253653;
 	public double lon = -88.405523;
-	public int zoom = 20;
+	public int zoom = 18;
 
 	static final double GOOGLEOFFSET = 268435456;
 	static final double GOOGLEOFFSET_RADIUS = GOOGLEOFFSET / Math.PI;
@@ -60,9 +58,9 @@ public class GoogleMapGrabber {
 				+ "format=png32&"
 				+ "sensor=false&"
 				+ "size="
-				+ WIDTH
+				+ SIZE
 				+ "x"
-				+ (HEIGHT + 25)
+				+ (SIZE + 25)
 				+ "&"
 				+ "maptype=roadmap&"
 				+"style=feature:road|element:geometry|color:0xffffff&"
@@ -76,13 +74,22 @@ public class GoogleMapGrabber {
 	}
 
 	public String getSatelliteUrl(int x, int y) {
-		double templon = adjustLonByPixels(lon, x, zoom);
-		double templat = adjustLatByPixels(lat, -y, zoom);
+		int x1=x*SIZE;
+		int y1=y*SIZE;
+		double templon = adjustLonByPixels(lon, x1, zoom);
+		double templat = adjustLatByPixels(lat, -y1, zoom);
 		return "http://maps.googleapis.com/maps/api/staticmap?" + "center="
 				+ templat + "," + templon + "&" + "zoom=" + zoom + "&"
-				+ "format=png32&" + "sensor=false&" + "size=" + WIDTH + "x"
-				+ (HEIGHT + 25) + "&" + "maptype=satellite&key=AIzaSyAsj-GadPbVpK0-G-HxHxbcPKuSLUme5xE";
+				+ "format=png32&" + "sensor=false&" + "size=" + SIZE + "x"
+				+ (SIZE + 25) + "&" + "maptype=satellite&key=AIzaSyAsj-GadPbVpK0-G-HxHxbcPKuSLUme5xE";
 	}
 
-	
+
+	public String getFileName(int x, int y) {
+		int x1=x*SIZE;
+		int y1=y*SIZE;
+		double templon = adjustLonByPixels(lon, x1, zoom);
+		double templat = adjustLatByPixels(lat, -y1, zoom);
+		return "tile_"+templat+"_"+templon+"__"+x+"_"+y+".png";
+	}
 }
