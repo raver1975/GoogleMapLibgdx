@@ -4,6 +4,7 @@ import com.klemstinegroup.googlemap.GoogleMapGrabber;
 //import com.klemstinegroup.googlemap.PairLite;
 
 import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -15,7 +16,7 @@ import java.util.ArrayList;
  */
 public class Simple {
     private final String directory = "e:/GoogleMapImages/";
-    int tilesToDownLoad = 100;
+    int tilesToDownLoad = 1;
     GoogleMapGrabber gm = new GoogleMapGrabber();
 
     public Simple() {
@@ -30,7 +31,10 @@ public class Simple {
             String filename = gm.getFileName(x , y );
             try {
                 BufferedImage image = ImageIO.read(new URL(sat));
-                ImageIO.write(image, "png", new File(directory + filename));
+                BufferedImage image2=new BufferedImage(GoogleMapGrabber.SIZE,GoogleMapGrabber.SIZE,BufferedImage.TYPE_INT_RGB);
+                Graphics bg=image2.getGraphics();
+                bg.drawImage(image,0,0,null);
+                ImageIO.write(image2, "png", new File(directory + filename));
             } catch (IOException e) {
                 System.out.println("retrying");
                 continue;
