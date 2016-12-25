@@ -16,7 +16,7 @@ import java.util.ArrayList;
  */
 public class Simple {
     private final String directory = "e:/GoogleMapImages/";
-    int tilesToDownLoad = 1;
+    int tilesToDownLoad = 24000;
     GoogleMapGrabber gm = new GoogleMapGrabber();
 
     public Simple() {
@@ -26,7 +26,7 @@ public class Simple {
         int t = 0;
 
         while (tilesToDownLoad-- > 0) {
-            System.out.println(x + "," + y);
+            System.out.println(tilesToDownLoad+":\t"+x + "," + y);
             String sat = gm.getSatelliteUrl(x , y );
             String filename = gm.getFileName(x , y );
             try {
