@@ -86,6 +86,8 @@ public class Simple {
                 }
             } else {
                 try {
+
+
                     BufferedImage image2 = ImageIO.read(new File(directory + d.filename));
                     bigPNGGraphics.drawImage(image2, (w/2-gm.SIZE/2)+d.tileX * gm.SIZE, (h/2-gm.SIZE/2)-d.tileY * gm.SIZE, null);
                     imagePane.repaint();
@@ -95,10 +97,13 @@ public class Simple {
             }
         }
         try {
+            System.out.println("saving");
             ImageIO.write(bigPNG, "png", new File(directory + "full.png"));
+            System.out.println("saved");
         } catch (IOException e) {
             e.printStackTrace();
         }
+        System.out.println("done");
     }
 
     public static void main(String[] args) {
