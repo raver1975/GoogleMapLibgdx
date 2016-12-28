@@ -10,7 +10,7 @@ public class GoogleMapGrabber {
 	public static String key="AIzaSyAsj-GadPbVpK0-G-HxHxbcPKuSLUme5xE";
 	public double lat = 44.253653172740925;//31.778 ;
 	public double lon = -88.4055233001709;//35.2354;
-	public int zoom = 20;
+	public int zoom = 18;
 	public String name = "Appleton";//"Jerusalem";
 	public static String directory = "e:/GoogleMapImages/Appleton2";
 

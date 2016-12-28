@@ -143,6 +143,7 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
                 oldx = cam.position.x;
                 oldy = cam.position.y;
                 moveCamera((float)Math.cos(angle)*speed, (float)Math.sin(angle)*speed);
+                angle+=(Math.random()-.5f)/100f;
 //                System.out.println(posx + "," + posy + "=" + pix);
             }
         }
@@ -232,7 +233,7 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
         for (Pair mk : draw) {
             batch.setColor(1f, 1f, 1f, 1f);
             if (mk.dataTex != null) {
-                batch.draw(mk.dataTex, mk.x(), mk.y());
+                batch.draw(mk.satTex, mk.x(), mk.y());
             }
 //            batch.setColor(1f, 1f, 1f, .8f);
 //            if (mk.satTex != null)
