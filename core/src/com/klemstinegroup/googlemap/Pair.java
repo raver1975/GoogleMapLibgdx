@@ -12,8 +12,8 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 
 public class Pair implements AssetErrorListener {
-    int pixelX;
-    int pixelY;
+//    int pixelX;
+//    int pixelY;
     int tileX;
     int tileY;
     Texture blank;
@@ -26,17 +26,17 @@ public class Pair implements AssetErrorListener {
     AssetManager managerRoad;
 
 
-    public Pair(int i, int j, int ii, int jj, String road, String sat) {
-        this.pixelX = i;
-        this.pixelY = j;
+    public Pair(int ii, int jj, String road, String sat,GoogleMapGrabber gm) {
+//        this.pixelX = i;
+//        this.pixelY = j;
         this.tileX = ii;
         this.tileY = jj;
 
         blank = getBlank();
         try {
             System.out.println("loading pixmap:"+this);
-            dataPix =PixmapIO.readCIM(Gdx.files.local("dataTex" + ii + "_" + jj+".cim"));
-            satPix =PixmapIO.readCIM(Gdx.files.local("satTex" + ii + "_" + jj+".cim"));
+            dataPix =PixmapIO.readCIM(Gdx.files.local(gm.directory + gm.getFileNameData(ii,jj) + ".cim"));
+            satPix =PixmapIO.readCIM(Gdx.files.local(gm.directory + gm.getFileNameSat(ii,jj) + ".cim"));
             System.out.println("successfully loaded");
         }
         catch(GdxRuntimeException e){
@@ -58,8 +58,8 @@ public class Pair implements AssetErrorListener {
     }
 
     public Pair(int i, int j) {
-        this.pixelX =i;
-        this.pixelY =j;
+        this.tileX =i;
+        this.tileY =j;
     }
 
     @Override
@@ -67,7 +67,7 @@ public class Pair implements AssetErrorListener {
         //check for self-comparison
         if (this == b) return true;
         Pair a = (Pair) b;
-        return (a.pixelX == pixelX && a.pixelY == pixelY);
+        return (a.tileX == tileX && a.tileY == tileY);
     }
 
     static Color[] colors = new Color[]{Color.WHITE, Color.GREEN, Color.RED, Color.BLUE, Color.YELLOW, Color.CYAN, Color.MAGENTA};
@@ -97,18 +97,18 @@ public class Pair implements AssetErrorListener {
     }
 
     public float y() {
-        return pixelY - GoogleMapGrabber.SIZE/ 2;
+        return tileY*GoogleMapGrabber.SIZE - GoogleMapGrabber.SIZE/ 2;
     }
 
     public float x() {
-        return pixelX - GoogleMapGrabber.SIZE / 2;
+        return tileX*GoogleMapGrabber.SIZE  - GoogleMapGrabber.SIZE / 2;
     }
 
     @Override
     public String toString() {
         return "Pair{" +
-                "pixelX=" + pixelX +
-                ", pixelY=" + pixelY +
+                "tileX=" + tileX +
+                ", tileY=" + tileY +
                 '}';
     }
 

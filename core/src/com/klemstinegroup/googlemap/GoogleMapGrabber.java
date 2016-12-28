@@ -1,12 +1,24 @@
 package com.klemstinegroup.googlemap;
 
+import java.io.File;
+
 public class GoogleMapGrabber {
 
-	public static int SIZE = 512;
-	public double lat = 44.253653;
-	public double lon = -88.405523;
-	public int zoom = 18;
+	//7000 seems max
+	//86 with 12G heap
+	static int tilesSqRoot = 86;
+	public static String key="AIzaSyAsj-GadPbVpK0-G-HxHxbcPKuSLUme5xE";
+	public double lat = 44.253653172740925;//31.778 ;
+	public double lon = -88.4055233001709;//35.2354;
+	public int zoom = 20;
+	public String name = "Appleton";//"Jerusalem";
+	public static String directory = "e:/GoogleMapImages/Appleton2";
 
+	static{
+		if (!directory.endsWith(File.separator))directory+=File.separator;
+	}
+
+	public static int SIZE = 512;
 	static final double GOOGLEOFFSET = 268435456;
 	static final double GOOGLEOFFSET_RADIUS = GOOGLEOFFSET / Math.PI;
 	static final double MATHPI_180 = Math.PI / 180;
@@ -21,7 +33,7 @@ public class GoogleMapGrabber {
 		return Math.round(GOOGLEOFFSET
 				- GOOGLEOFFSET_RADIUS
 				* Math.log((1 + Math.sin(lat * MATHPI_180))
-						/ (1 - Math.sin(lat * MATHPI_180))) / 2);
+				/ (1 - Math.sin(lat * MATHPI_180))) / 2);
 	}
 
 	public final static double XToLon(double x) {
@@ -45,8 +57,10 @@ public class GoogleMapGrabber {
 	}
 
 	public String getRoadMapUrl(int x, int y) {
-		double templon = adjustLonByPixels(lon, x, zoom);
-		double templat = adjustLatByPixels(lat, -y, zoom);
+		int x1=x*SIZE;
+		int y1=y*SIZE;
+		double templon = adjustLonByPixels(lon, x1, zoom);
+		double templat = adjustLatByPixels(lat, -y1, zoom);
 		return "http://maps.googleapis.com/maps/api/staticmap?" + "center="
 				+ templat
 				+ ","
@@ -63,33 +77,43 @@ public class GoogleMapGrabber {
 				+ (SIZE + 25)
 				+ "&"
 				+ "maptype=roadmap&"
-				+"style=feature:road|element:geometry|color:0xffffff&"
-				+"style=feature:landscape.man_made|element:geometry|color:0xff0000&"
-				+"style=feature:landscape.natural|element:geometry|color:0x00ff00&"
-				+"style=feature:administrative|element:geometry|lightness:-100&"
-				+"style=feature:poi|element:geometry|color:0xff00ff&&"
-				+"style=feature:transit|element:geometry|color:0xffffff&"
-				+"style=feature:water|element:geometry|color:0x0000ff&"
-				+"style=feature:all|element:labels|visibility:off&key=AIzaSyAsj-GadPbVpK0-G-HxHxbcPKuSLUme5xE";
+				+ "style=feature:road|element:geometry|color:0xffffff&"
+				+ "style=feature:transit|element:geometry|color:0xeeeeee&"
+				+ "style=feature:poi|element:geometry|color:0xaaaaaa&"
+				+ "style=feature:landscape.man_made|element:geometry|color:0x888888&"
+				+ "style=feature:landscape.natural|element:geometry|color:0x444444&"
+				+ "style=feature:water|element:geometry|color:0x111111&"
+
+				+ "style=feature:administrative|element:geometry|lightness:-100&"
+				+ "style=feature:all|element:labels|visibility:off&"
+				+ "key="+key;
 	}
 
 	public String getSatelliteUrl(int x, int y) {
-		int x1=x*SIZE;
-		int y1=y*SIZE;
+		int x1 = x * SIZE;
+		int y1 = y * SIZE;
 		double templon = adjustLonByPixels(lon, x1, zoom);
 		double templat = adjustLatByPixels(lat, -y1, zoom);
 		return "http://maps.googleapis.com/maps/api/staticmap?" + "center="
 				+ templat + "," + templon + "&" + "zoom=" + zoom + "&"
 				+ "format=png32&" + "sensor=false&" + "size=" + SIZE + "x"
-				+ (SIZE + 25) + "&" + "maptype=satellite&key=AIzaSyAsj-GadPbVpK0-G-HxHxbcPKuSLUme5xE";
+				+ (SIZE + 25) + "&" + "maptype=satellite&key="+key;
 	}
 
 
-	public String getFileName(int x, int y) {
-		int x1=x*SIZE;
-		int y1=y*SIZE;
+	public String getFileNameSat(int x, int y) {
+		int x1 = x * SIZE;
+		int y1 = y * SIZE;
 		double templon = adjustLonByPixels(lon, x1, zoom);
 		double templat = adjustLatByPixels(lat, -y1, zoom);
-		return "tile_"+templat+"_"+templon+"__"+x+"_"+y+".png";
+		return "tile_" + name + "_" + zoom + "_" + templat + "_" + templon + "_" + x + "_" + y + ".png";
+	}
+
+	public String getFileNameData(int x, int y) {
+		int x1 = x * SIZE;
+		int y1 = y * SIZE;
+		double templon = adjustLonByPixels(lon, x1, zoom);
+		double templat = adjustLatByPixels(lat, -y1, zoom);
+		return "tile_" + name + "RD_" + zoom + "_" + templat + "_" + templon + "_" + x + "_" + y + ".png";
 	}
 }
