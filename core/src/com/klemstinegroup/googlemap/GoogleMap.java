@@ -14,6 +14,7 @@ import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.assets.AssetDescriptor;
 import com.badlogic.gdx.assets.AssetErrorListener;
 import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Pixmap;
@@ -44,7 +45,7 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
     private SpriteBatch batch;
     private int movex;
     private int movey;
-    Texture face;
+//    Texture face;
     private int oldloaded;
     private int oldloading;
 
@@ -56,9 +57,9 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
         WIDTH = Gdx.graphics.getWidth();
         HEIGHT = Gdx.graphics.getHeight();
         rotationSpeed = 0.5f;
-        face = new Texture(
-                new URLHandle(
-                        "http://cdn1.sbnation.com/profile_images/592671/smiley_face_small.jpg"));
+//        face = new Texture(
+//                new URLHandle(
+//                        "http://cdn1.sbnation.com/profile_images/592671/smiley_face_small.jpg"));
         cam = new OrthographicCamera(WIDTH, HEIGHT);
         cam.position.set(0, 0, 0);
         moveCamera(0, 0);
@@ -117,7 +118,7 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
 
 
     float oldx = 1, oldy = 1;
-    float angle=(float)Math.PI,speed=1;
+    float angle=(float)Math.PI/4f,speed=2f;
     boolean on = false;
 
     @Override
@@ -137,7 +138,7 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
                     if (pix != -1) {
                         cam.position.x = oldx;
                         cam.position.y = oldy;
-                        angle+=Math.random()-.5f;
+//                        angle+=Math.random()-.5f;
                     }
                 }
                 oldx = cam.position.x;
@@ -233,19 +234,46 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
         for (Pair mk : draw) {
             batch.setColor(1f, 1f, 1f, 1f);
             if (mk.dataTex != null) {
-                batch.draw(mk.satTex, mk.x(), mk.y());
+                batch.draw(mk.dataTex, mk.x(), mk.y());
             }
-//            batch.setColor(1f, 1f, 1f, .8f);
-//            if (mk.satTex != null)
-//                batch.draw(mk.satTex, mk.x(), mk.y());
+            batch.setColor(1f, 1f, 1f, .8f);
+            if (mk.satTex != null)
+                batch.draw(mk.satTex, mk.x(), mk.y());
         }
 
         batch.setColor(1f, 1f, 1f, 1f);
-        batch.draw(face, cam.position.x - 16, cam.position.y - 16);
+        Pixmap p=new Pixmap(20,20, Pixmap.Format.RGBA8888);
+        p.setColor(Color.CLEAR);
+        p.fill();
+        p.setColor(Color.FIREBRICK);
+        p.fillCircle(10,10,5);
+        float len=10;
+        p.setColor(Color.RED);
+        for (int i=-1;i<2;i++){
+            for (int j=-1;j<2;j++){
+                p.drawLine(10+i,10+j,(int)(10+i+(float)Math.cos(angle)*len),(int)(10+j-(float)Math.sin(angle)*len));
+            }
+        }
+
+
+        batch.draw(new Texture(p), cam.position.x - 10, cam.position.y - 10);
         batch.end();
     }
 
     private void handleInput() {
+        if (Gdx.input.isKeyPressed(Input.Keys.O)) {
+            angle+=.1f;
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.P)) {
+            angle-=.1f;
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.I)) {
+            speed+=.1f;
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.K)) {
+            speed-=.1f;
+        }
+
         if (Gdx.input.isKeyPressed(Input.Keys.A)) {
             cam.zoom += 0.02;
         }
