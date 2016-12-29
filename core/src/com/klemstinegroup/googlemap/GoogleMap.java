@@ -33,6 +33,8 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
 
     private OrthographicCamera cam;
 
+//    ArrayList<FloodFillData> queue = new ArrayList<FloodFillData>();
+
     ArrayList<Pair> tiles = new ArrayList<Pair>();
 
 //    ArrayList<Long> loaded = new ArrayList<Long>();
@@ -45,15 +47,15 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
     private SpriteBatch batch;
     private int movex;
     private int movey;
-//    Texture face;
+    //    Texture face;
     private int oldloaded;
     private int oldloading;
+
 
     @Override
     public void create() {
 
         getLocation();
-
         WIDTH = Gdx.graphics.getWidth();
         HEIGHT = Gdx.graphics.getHeight();
         rotationSpeed = 0.5f;
@@ -63,6 +65,7 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
         cam = new OrthographicCamera(WIDTH, HEIGHT);
         cam.position.set(0, 0, 0);
         moveCamera(0, 0);
+//        queue.add(new FloodFillData((int) cam.position.x, (int) cam.position.y));
         batch = new SpriteBatch();
 
         Gdx.input.setInputProcessor(this);
@@ -118,35 +121,129 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
 
 
     float oldx = 1, oldy = 1;
-    float angle=(float)Math.PI/4f,speed=2f;
+    float angle = (float) Math.PI * 0f / 4f, speed = 1f;
     boolean on = false;
+    boolean dir = false;
+    boolean clear = true;
 
     @Override
     public void render() {
-        int ttx = (int) (cam.position.x + GoogleMapGrabber.SIZE / 2) / GoogleMapGrabber.SIZE;
-        int tty = (int) (cam.position.y + GoogleMapGrabber.SIZE / 2) / GoogleMapGrabber.SIZE;
-        for (Pair p : tiles) {
-            if (p.tileX == ttx && p.tileY == tty) {
-                int posx = (int) (((cam.position.x + GoogleMapGrabber.SIZE / 2) % GoogleMapGrabber.SIZE) + GoogleMapGrabber.SIZE) % GoogleMapGrabber.SIZE;
-                int posy = GoogleMapGrabber.SIZE - (int) (((cam.position.y + GoogleMapGrabber.SIZE / 2) % GoogleMapGrabber.SIZE) + GoogleMapGrabber.SIZE) % GoogleMapGrabber.SIZE;
-                int pix = p.dataPix.getPixel(posx, posy);
-                if (!on) {
-                    if (pix == -1) {
-                        on = true;
+//        for (int i = 0; i < 100; i++) {
+//            System.out.println(queue.size());
+            FloodFillData ffd1 = new FloodFillData((int) cam.position.x, (int) cam.position.y);
+            FloodFillData ffd = ffd1;
+            double dist = Double.MAX_VALUE;
+            double dist2 = Double.MIN_VALUE;
+            FloodFillData ffd2 = null;
+            double dist3 = Double.MIN_VALUE;
+            FloodFillData ffd3 = null;
+
+//            for (FloodFillData ff : queue) {
+//                if (ff.dist(ffd1.gloX, ffd1.gloY) < dist) {
+//                    dist = ff.dist(ffd1.gloX, ffd1.gloY);
+//                    ffd = ff;
+//                }
+//
+//                if (queue.size() > 1000) {
+//                    if (ff.dist(ffd1.gloX, ffd1.gloY) > dist2) {
+//                        dist2 = ff.dist(ffd1.gloX, ffd1.gloY);
+//                        ffd2 = ff;
+//                    }
+//                }
+//
+//                if (queue.size() > 2000) {
+//                    if (ff.dist(ffd1.gloX, ffd1.gloY) > dist3) {
+//                        dist3 = ff.dist(ffd1.gloX, ffd1.gloY);
+//                        ffd3 = ff;
+//                    }
+//                }
+//
+//
+//            }
+//            queue.remove(ffd);
+//            queue.remove(ffd2);
+//            queue.remove(ffd3);
+            int ttx = (int) (ffd.gloX + GoogleMapGrabber.SIZE / 2) / GoogleMapGrabber.SIZE;
+            int tty = (int) (ffd.gloY + GoogleMapGrabber.SIZE / 2) / GoogleMapGrabber.SIZE;
+            int posx = (int) (((ffd.gloX + GoogleMapGrabber.SIZE / 2) % GoogleMapGrabber.SIZE) + GoogleMapGrabber.SIZE) % GoogleMapGrabber.SIZE;
+            int posy = GoogleMapGrabber.SIZE - (int) (((ffd.gloY + GoogleMapGrabber.SIZE / 2) % GoogleMapGrabber.SIZE) + GoogleMapGrabber.SIZE) % GoogleMapGrabber.SIZE;
+
+            for (Pair p : tiles) {
+                if (p.tileX == ttx && p.tileY == tty) {
+                    int pix = p.dataPix.getPixel(posx, posy);
+                    if (!on) {
+                        if (pix == -1) {
+                            on = true;
+                        } else {
+                            moveCamera((float) Math.cos(angle) * speed, (float) Math.sin(angle) * speed);
+                        }
+                    } else {
+                        if (pix != -1) {
+                            cam.position.x = oldx;
+                            cam.position.y = oldy;
+                            angle += dir ? 0.1f : -0.1f;
+                            clear = false;
+
+                        } else {
+//                            queue.add(new FloodFillData(ffd.gloX - 1, ffd.gloY));
+//                            queue.add(new FloodFillData(ffd.gloX + 1, ffd.gloY));
+//                            queue.add(new FloodFillData(ffd.gloX, ffd.gloY - 1));
+//                            queue.add(new FloodFillData(ffd.gloX, ffd.gloY + 1));
+//                            cam.position.x -= (cam.position.x - ffd.gloX) / 2f;
+//                            cam.position.y -= (cam.position.y - ffd.gloY) / 2f;
+//                            moveCamera(ffd.gloX-cam.position.x,ffd.gloY-cam.position.y);
+                            if (!clear) dir = !dir;
+                            clear = true;
+                        }
                     }
-                } else {
-                    if (pix != -1) {
-                        cam.position.x = oldx;
-                        cam.position.y = oldy;
-//                        angle+=Math.random()-.5f;
+//                    p.satPix.drawPixel(posx, posy, Color.rgba8888(Color.BLACK));
+//
+//                    p.dataPix.drawPixel(posx, posy, Color.rgba8888(Color.BLACK));
+
+
+                    oldx = cam.position.x;
+                    oldy = cam.position.y;
+
+                    while (angle < 0f) angle += (float) Math.PI * 2f;
+                    while (angle > (float) Math.PI * 2f) angle -= (float) Math.PI * 2f;
+                    float d1 = Math.abs(angle - 0f);
+                    float d2 = Math.abs(angle - (float) Math.PI / 2f);
+                    float d3 = Math.abs(angle - (float) Math.PI);
+                    float d4 = Math.abs(angle - (float) Math.PI * 3f / 2f);
+                    float d5 = Math.abs(angle - (float) Math.PI * 2f);
+                    float min = Math.min(d1, Math.min(d2, Math.min(d3, Math.min(d4, d5))));
+                    float target = 0;
+                    if (d1 == min) {
+                        target = 0f;
                     }
+                    if (d2 == min) {
+                        target = (float) Math.PI / 2f;
+                    }
+                    if (d3 == min) {
+                        target = (float) Math.PI;
+                    }
+                    if (d4 == min) {
+                        target = (float) Math.PI * 3f / 2f;
+                    }
+                    if (d5 == min) {
+                        target = (float) Math.PI * 2f;
+                    }
+
+                    if (target < angle) angle -= .01f;
+                    if (target > angle) angle += .01f;
+                moveCamera((float) Math.cos(angle) * speed, (float) Math.sin(angle) * speed);
                 }
-                oldx = cam.position.x;
-                oldy = cam.position.y;
-                moveCamera((float)Math.cos(angle)*speed, (float)Math.sin(angle)*speed);
-                angle+=(Math.random()-.5f)/100f;
-//                System.out.println(posx + "," + posy + "=" + pix);
-            }
+//                if (p.satTex != null) {
+//                    p.satTex.dispose();}
+//                    p.satTex = new Texture(p.satPix);
+//
+//                if (p.dataTex != null) {
+//                    p.dataTex.dispose();}
+//                    p.dataTex = new Texture(p.dataPix);
+
+
+
+
         }
 
 
@@ -159,12 +256,20 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
                 if (p.satPix != null) p.satTex = new Texture(p.satPix);
                 if (p.managerRoad != null) {
                     System.out.println("writing pixmap:" + p);
-                    PixmapIO.writeCIM(Gdx.files.absolute(gm.directory + gm.getFileNameData(p.tileX, p.tileY) + ".cim"), p.dataPix);
-                    PixmapIO.writeCIM(Gdx.files.absolute(gm.directory + gm.getFileNameSat(p.tileX, p.tileY) + ".cim"), p.satPix);
+                    if (gm.directory == null) {
+                        PixmapIO.writeCIM(Gdx.files.external(gm.getFileNameData(p.tileX, p.tileY) + ".cim"), p.dataPix);
+                        PixmapIO.writeCIM(Gdx.files.external(gm.getFileNameSat(p.tileX, p.tileY) + ".cim"), p.satPix);
 
-                    PixmapIO.writePNG(Gdx.files.absolute(gm.directory + gm.getFileNameData(p.tileX, p.tileY)), p.dataPix);
-                    PixmapIO.writePNG(Gdx.files.absolute(gm.directory + gm.getFileNameSat(p.tileX, p.tileY)), p.satPix);
+                        PixmapIO.writePNG(Gdx.files.external(gm.getFileNameData(p.tileX, p.tileY)), p.dataPix);
+                        PixmapIO.writePNG(Gdx.files.external(gm.getFileNameSat(p.tileX, p.tileY)), p.satPix);
 
+                    } else {
+                        PixmapIO.writeCIM(Gdx.files.absolute(gm.directory + gm.getFileNameData(p.tileX, p.tileY) + ".cim"), p.dataPix);
+                        PixmapIO.writeCIM(Gdx.files.absolute(gm.directory + gm.getFileNameSat(p.tileX, p.tileY) + ".cim"), p.satPix);
+
+                        PixmapIO.writePNG(Gdx.files.absolute(gm.directory + gm.getFileNameData(p.tileX, p.tileY)), p.dataPix);
+                        PixmapIO.writePNG(Gdx.files.absolute(gm.directory + gm.getFileNameSat(p.tileX, p.tileY)), p.satPix);
+                    }
 
                 }
 
@@ -242,16 +347,16 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
         }
 
         batch.setColor(1f, 1f, 1f, 1f);
-        Pixmap p=new Pixmap(20,20, Pixmap.Format.RGBA8888);
+        Pixmap p = new Pixmap(20, 20, Pixmap.Format.RGBA8888);
         p.setColor(Color.CLEAR);
         p.fill();
         p.setColor(Color.FIREBRICK);
-        p.fillCircle(10,10,5);
-        float len=10;
+        p.fillCircle(10, 10, 5);
+        float len = 10;
         p.setColor(Color.RED);
-        for (int i=-1;i<2;i++){
-            for (int j=-1;j<2;j++){
-                p.drawLine(10+i,10+j,(int)(10+i+(float)Math.cos(angle)*len),(int)(10+j-(float)Math.sin(angle)*len));
+        for (int i = -1; i < 2; i++) {
+            for (int j = -1; j < 2; j++) {
+                p.drawLine(10 + i, 10 + j, (int) (10 + i + (float) Math.cos(angle) * len), (int) (10 + j - (float) Math.sin(angle) * len));
             }
         }
 
@@ -262,16 +367,16 @@ public class GoogleMap implements ApplicationListener, AssetErrorListener,
 
     private void handleInput() {
         if (Gdx.input.isKeyPressed(Input.Keys.O)) {
-            angle+=.1f;
+            angle += .1f;
         }
         if (Gdx.input.isKeyPressed(Input.Keys.P)) {
-            angle-=.1f;
+            angle -= .1f;
         }
         if (Gdx.input.isKeyPressed(Input.Keys.I)) {
-            speed+=.1f;
+            speed += .1f;
         }
         if (Gdx.input.isKeyPressed(Input.Keys.K)) {
-            speed-=.1f;
+            speed -= .1f;
         }
 
         if (Gdx.input.isKeyPressed(Input.Keys.A)) {

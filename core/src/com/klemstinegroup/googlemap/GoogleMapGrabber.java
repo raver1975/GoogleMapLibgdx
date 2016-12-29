@@ -12,10 +12,10 @@ public class GoogleMapGrabber {
     public double lon = -88.4055233001709;//35.2354;
     public int zoom = 18;
     public String name = "Appleton";//"Jerusalem";
-    public static String directory = "e:/GoogleMapImages/Appleton2";
+    public static String directory = null;
 
     static {
-        if (!directory.endsWith(File.separator)) directory += File.separator;
+        if (directory != null && !directory.endsWith(File.separator)) directory += File.separator;
     }
 
     public static int SIZE = 512;
